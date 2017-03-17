@@ -39,8 +39,6 @@ print "</form>"
 print "</body></html>"
 
 def create_html(data):
-    print '<div style="padding:15px;padding-bottom:40px;margin-bottom:40px;background-color:#f1f1f1;box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);">'
-    print '<h3>Result for the select query:</h3>'
     html = '<table><tr>'
     for i in cur.description:
         html += '<th>' + str(i[0]) + '</th>'
@@ -52,7 +50,6 @@ def create_html(data):
         html += '</tr>'
     html += '</table>'
     print html
-    print '</div>'
 
 form = cgi.FieldStorage()
 if form.getvalue("query"):
@@ -66,16 +63,26 @@ for char in query:
 
 words = line.split(";")
 
-for i in range(len(words)-1):
-    if "select" in words[i].lower():
+for i in range(len(words)):
+    if "select" or "show" in words[i].lower():
         data = []
-        cur.execute(words[i])
-        # print all the first cell of all the rows
-        for row in cur.fetchall():
-            data.append(row)
-        # print data
-        create_html(data)
-    elif "insert" or "update" or "drop" or "alter" or "delete" or "truncate" or "create" in words[i].lower():
+        try:
+            cur.execute(words[i])
+            # print all the first cell of all the rows
+            for row in cur.fetchall():
+                data.append(row)
+            # print data
+            print '<div style="padding:15px;padding-bottom:40px;margin-bottom:40px;background-color:#f1f1f1;box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);">'
+            print '<h3>Result for the \"' + words[i] + '\" query:</h3>'
+            create_html(data)
+            print '</div>'
+        except:
+            print '<div style="padding:15px;padding-bottom:40px;margin-bottom:40px;background-color:#f1f1f1;box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);">'
+            print "<h3>Query: \"" + words[i] +  "\" failed to execute</h3>"
+            print '</div>'
+    elif words[i] == "":
+        continue
+    else:
         try:
             cur.execute(words[i])
             db.commit()
